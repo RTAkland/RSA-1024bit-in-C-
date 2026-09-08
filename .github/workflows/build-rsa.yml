@@ -1,0 +1,129 @@
+name: Build RSA-1024
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  linux64:
+    name: Linux x64
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build
+        run: |
+          gcc -O3 -c rsa.c -o rsa.o
+          ar rcs librsa1024.a rsa.o
+
+      - name: Prepare artifact
+        run: |
+          mkdir -p artifact
+          cp librsa1024.a artifact/
+          cp rsa.h artifact/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rsa1024-linux64
+          path: artifact/
+
+
+  linuxarm64:
+    name: Linux ARM64
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install cross compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
+
+      - name: Build
+        run: |
+          aarch64-linux-gnu-gcc -O3 -c rsa.c -o rsa.o
+          aarch64-linux-gnu-ar rcs librsa1024.a rsa.o
+
+      - name: Prepare artifact
+        run: |
+          mkdir -p artifact
+          cp librsa1024.a artifact/
+          cp rsa.h artifact/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rsa1024-linuxarm64
+          path: artifact/
+
+
+  windows64:
+    name: Windows x64
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-binutils
+
+      - name: Build
+        run: |
+          gcc -O3 -c rsa.c -o rsa.o
+          ar rcs librsa1024.a rsa.o
+
+      - name: Prepare artifact
+        run: |
+          mkdir -p artifact
+          cp librsa1024.a artifact/
+          cp rsa.h artifact/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rsa1024-windows64
+          path: artifact/
+
+
+  macosarm64:
+    name: macOS ARM64
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build
+        run: |
+          clang -O3 -arch arm64 -c rsa.c -o rsa.o
+          ar rcs librsa1024.a rsa.o
+
+      - name: Prepare artifact
+        run: |
+          mkdir -p artifact
+          cp librsa1024.a artifact/
+          cp rsa.h artifact/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rsa1024-macosarm64
+          path: artifact/
